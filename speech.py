@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
-import speech_recognition as sr
 
 # Load model and vectorizer
 model = joblib.load("modeltest.pkl")
@@ -22,26 +21,16 @@ if "history" not in st.session_state:
 
 # Sidebar
 st.sidebar.title("🧠 Sentiment Analyzer")
-st.sidebar.markdown("### 🎙️ Voice Input:")
-if st.sidebar.button("🎤 Speak Now"):
-    recognizer = sr.Recognizer()
-    mic = sr.Microphone()
-    try:
-        with mic as source:
-            st.sidebar.info("Listening... Please speak clearly.")
-            audio = recognizer.listen(source, timeout=5)
-            st.sidebar.info("Processing your voice...")
-            text_from_voice = recognizer.recognize_google(audio)
-            st.session_state["voice_input"] = text_from_voice
-            st.sidebar.success(f"Detected Text: '{text_from_voice}'")
-    except Exception as e:
-        st.sidebar.error(f"Error: {str(e)}")
+st.sidebar.markdown("This app predicts the sentiment of your input text.")
 
 # Show history
 st.sidebar.markdown("---")
 st.sidebar.subheader("📜 Prediction History")
 if st.session_state.history:
-    st.sidebar.dataframe(pd.DataFrame(st.session_state.history, columns=["Text", "Sentiment"]), use_container_width=True)
+    st.sidebar.dataframe(
+        pd.DataFrame(st.session_state.history, columns=["Text", "Sentiment"]),
+        use_container_width=True
+    )
 else:
     st.sidebar.write("No predictions made yet.")
 
@@ -49,13 +38,12 @@ else:
 st.title("💬 Sentiment Analysis Web App")
 st.markdown("Analyze the sentiment of your sentence using a trained machine learning model.")
 
-# Text Input (default from voice if exists)
-default_text = st.session_state.get("voice_input", "")
-user_input = st.text_area("✏️ Enter text or use the sidebar voice button:", value=default_text, height=100)
+# Text Input
+user_input = st.text_area("✏️ Enter your sentence below:", height=100)
 
 if st.button("🔍 Analyze Sentiment"):
     if user_input.strip() == "":
-        st.warning("⚠️ Please enter or speak some text.")
+        st.warning("⚠️ Please enter some text to analyze.")
     else:
         # Predict
         vec = vectorizer.transform([user_input])
@@ -66,7 +54,10 @@ if st.button("🔍 Analyze Sentiment"):
         color = color_map[sentiment]
 
         # Result
-        st.markdown(f"### 🎯 Sentiment: **<span style='color:{color}'>{sentiment}</span>**", unsafe_allow_html=True)
+        st.markdown(
+            f"### 🎯 Sentiment: **<span style='color:{color}'>{sentiment}</span>**",
+            unsafe_allow_html=True
+        )
 
         # Chart
         st.markdown("#### 📊 Model Confidence:")
